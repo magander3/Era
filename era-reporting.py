@@ -331,9 +331,7 @@ if userdbinstance.status_code == 200:
         #
         # Get Database(s)
         for ref_id in db_inst['properties']:
-            if ref_id["name"] == "db_name":
-                databases_get = ref_id["value"]
-            elif ref_id["name"] == "database_list":
+            if ref_id["name"] == "database_list":
                 # extract the list of database names
                 db_names_list = list()
                 db_names_str = ref_id["value"]
@@ -341,7 +339,14 @@ if userdbinstance.status_code == 200:
                 db_name_temp_list.pop(0)
                 for db_name_temp_str in db_name_temp_list:
                     db_names_list.append(db_name_temp_str.split("',")[0])
-                databases_get = (LTS(db_names_list))
+                databases_get_list = (LTS(db_names_list))
+        if not databases_get_list:
+           for ref_id in db_inst['properties']:
+                if ref_id["name"] == "db_name":
+                    databases_get = ref_id["value"]
+        else:
+            databases_get = databases_get_list
+            databases_get_list = ""
         #
         #
         # Get DB Engine definition
