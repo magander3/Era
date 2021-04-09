@@ -330,6 +330,7 @@ if userdbinstance.status_code == 200:
         #
         #
         # Get Database(s)
+        databases_get_list = ""
         for ref_id in db_inst['properties']:
             if ref_id["name"] == "database_list":
                 # extract the list of database names
@@ -346,7 +347,6 @@ if userdbinstance.status_code == 200:
                     databases_get = ref_id["value"]
         else:
             databases_get = databases_get_list
-            databases_get_list = ""
         #
         #
         # Get DB Engine definition
