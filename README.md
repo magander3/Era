@@ -1,7 +1,7 @@
 # Era
 Era Related Topics.
 
-era-reporting.py provides Era reporting capabilities and includes the following information:
+era-reporting-db.py provides Era reporting capabilities and includes the following information:
 - Database/Instance name
 - Database(s)
 - Type
