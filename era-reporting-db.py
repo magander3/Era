@@ -3,8 +3,8 @@
 # Nutanix Era Reporting Script
 # Author: Magnus Andersson - Principal Architect Nutanix
 #
-# Date: 2021-03-30
-# Version 1.0
+# Date: 2021-04-10
+# Version 1.0.1
 #
 #####################################################################################
 # Import whatever needs to be imported
@@ -330,7 +330,6 @@ if userdbinstance.status_code == 200:
         #
         #
         # Get Database(s)
-        databases_get_list = ""
         for ref_id in db_inst['properties']:
             if ref_id["name"] == "database_list":
                 # extract the list of database names
@@ -341,12 +340,12 @@ if userdbinstance.status_code == 200:
                 for db_name_temp_str in db_name_temp_list:
                     db_names_list.append(db_name_temp_str.split("',")[0])
                 databases_get_list = (LTS(db_names_list))
-        if not databases_get_list:
-           for ref_id in db_inst['properties']:
-                if ref_id["name"] == "db_name":
-                    databases_get = ref_id["value"]
-        else:
-            databases_get = databases_get_list
+                databases_get = (LTS(db_names_list))
+                break
+            else:
+                for ref_id in db_inst['properties']:
+                    if ref_id["name"] == "db_name":
+                        databases_get = ref_id["value"]
         #
         #
         # Get DB Engine definition
