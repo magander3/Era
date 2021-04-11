@@ -22,7 +22,7 @@ date_time = now.strftime("%Y-%m-%d %H%M")
 #####################################################################################
 #
 #####################################################################################
-# Consumer config section. Define the following values
+# User config section. Define the following values
 #
 #
 era_report_user_local_dir = "_Report_Folder_Destination_Ending_With_A_Slash/"
@@ -37,7 +37,7 @@ include_dbvms = "Y"
 include_profiles = "Y"
 include_tags = "Y"
 #
-# End of consumer section section
+# End of user config section
 #
 #####################################################################################
 #
