@@ -280,7 +280,7 @@ userdbinstance = requests.get(
 #
 # Create initial reporting doc structure
 f = open(era_report_file, "w")
-f.write("Database/Instance name,Database(s),Type,Database Version,Database Profile,Size GB,Database Owner,Database/Instance Create Date / Time,Number of clones")
+f.write("Database/Instance name,Database(s),Type,Database Version,Database Profile,Size GB,Database Owner,Database/Instance Create Date & Time,Number of clones")
 f.close()
 #
 if include_time_machine == "Y" and era_multi_cluster == "Y":
