@@ -305,13 +305,6 @@ if include_tags == "Y":
     f.close()
 #
 #
-# Old stuff
-#f = open(era_report_file, "w")
-#if era_multi_cluster == "Y":
-#    f.write("Database/Instance name,Database(s),Type,Database Version,Database Profile,Size GB,Database Owner,Database/Instance Create Date / Time,Number of clones,Time Machine Name,Time Machine Size GB,Time Machine SLA (Name-/-Nutanix Cluster),Server VM(s) Name,Server VM(s) IP,Nutanix Cluster Placement,Software Profile,Compute Profile,Network Profile,Database Tags (Name-/-Value),Time Machine Tags (Name-/-Value),Database Server VM Tags (Name-/-Value)")
-#else:
-#    f.write("Database/Instance name,Database(s),Type,Database Version,Database Profile,Size GB,Database Owner,Database/Instance Create Date / Time,Number of clones,Time Machine Name,Time Machine Size GB,Time Machine SLA,Server VM(s) Name,Server VM(s) IP,Nutanix Cluster Placement,Software Profile,Compute Profile,Network Profile,Database Tags (Name-/-Value),Time Machine Tags (Name-/-Value),Database Server VM Tags (Name-/-Value)")
-#f.close()
 #####################################################################################
 #
 #####################################################################################
