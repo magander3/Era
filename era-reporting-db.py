@@ -65,7 +65,6 @@ era_profile_uri4 ="/era/v0.9/profiles?type=Database_Parameter"
 era_sla_uri1 = "/era/v0.9/slas"
 era_tm_uri1 = "/era/v0.9/tms?detailed=false&load-database=true&load-clones=true&load-metrics=true&load-associated-clusters=true"
 era_db_uri1 = "/era/v0.9/databases?detailed=true&load-dbserver-cluster=false&order-by-dbserver-cluster=false&order-by-dbserver-logical-cluster=false"
-era_dbvm_uri1 = "/era/v0.9/dbservers?detailed=true&load-databases=true&load-clones=true"
 era_ntnxcluster_uri1 = "/era/v0.9/clusters?include-management-server-info=true"
 era_user_uri1 = "/era/v0.9/users/"
 #####################################################################################
@@ -125,19 +124,6 @@ if len(response_ntnxcluster_list) == 1:
     era_multi_cluster = "N"
 else:
     era_multi_cluster = "Y"
-#
-# ------------------ Get DB VM Info ------------------
-#
-eradbvmsurl = era_protocol + era_ip + era_dbvm_uri1
-eradbvms = requests.get(
-        eradbvmsurl,
-        headers=headers,
-        auth=(era_user, era_password),
-        verify=False
-    )
-#
-if eradbvms.status_code == 200:
-     era_returned_dbvms_list = json.loads(eradbvms.content)
 #
 # ------------------ Get Time Machine Info ------------------
 #
@@ -639,8 +625,6 @@ if userdbinstance.status_code == 200:
         #
 #####################################################################################
         # Add the information to the report
-        #db_dict = "\n"+db_inst_name_get+","+databases_get+","+db_engine_get+","+db_version_get+","+db_db_profile_name_get+","+db_size_name_get+","+db_owner_get+","+db_instance_create_date_get+","+db_inst_clone_count_get+","+tm_get+","+tm_size_get+","+tm_sla_get+","+db_server_vm_name_get+","+db_server_vm_ip_get+","+ntnxcluster_name_get+","+software_profile_name_get+","+compute_profile_name_get+","+network_profile_name_get+","+db_tag_get+","+tm_tag_get+","+dbsvm_tag_get
-        #
         db_dict = "\n"+db_inst_name_get+","+databases_get+","+db_engine_get+","+db_version_get+","+db_db_profile_name_get+","+db_size_name_get+","+db_owner_get+","+db_instance_create_date_get+","+db_inst_clone_count_get
         response_db_list.append(db_dict)
         f = open(era_report_file, "a")
@@ -662,10 +646,6 @@ if userdbinstance.status_code == 200:
             db_dict_tags = ","+db_tag_get+","+tm_tag_get+","+dbsvm_tag_get
             response_db_list.append(db_dict_tags)
             f.write(str(db_dict_tags))
-        # Append information to the report file
-        #response_db_list.append(db_dict)
-        #f = open(era_report_file, "a")
-        #f.write(str(db_dict))
         f.close()
 else:
     print("Error getting Era information:", userdbinstance.status_code)
