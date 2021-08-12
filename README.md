@@ -43,6 +43,6 @@ era-reporting-clones.py provides Era reporting capabilities and includes the fol
 - Nutanix Cluster Placement
 - Software Profile
 - Compute Profile
-- Network Profile
+- Network Profile 
 
 Use the configuration options and scripts published in this Github repo at your own risk. You agree not to hold me or any of my guest bloggers liable for any damages or losses related to the use of the scripts. You agree not to sue me.
