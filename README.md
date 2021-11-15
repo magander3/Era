@@ -10,6 +10,7 @@ era-reporting-db.py provides Era reporting capabilities and includes the followi
 - Database Profile
 - Size GB
 - Database Owner
+- Database Status
 - Database/Instance Create Date / Time
 - Number of clones
 - Time Machine Name
