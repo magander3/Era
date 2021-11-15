@@ -3,8 +3,8 @@
 # Nutanix Era Reporting Script
 # Author: Magnus Andersson - Principal Architect Nutanix
 #
-# Date: 2021-04-10
-# Version 1.0.1
+# Date: 2021-11-15
+# Version 1.2
 #
 #####################################################################################
 # Import whatever needs to be imported
@@ -266,7 +266,7 @@ userdbinstance = requests.get(
 #
 # Create initial reporting doc structure
 f = open(era_report_file, "w")
-f.write("Database/Instance name,Database(s),Type,Database Version,Database Profile,Size GB,Database Owner,Database/Instance Create Date & Time,Number of clones")
+f.write("Database/Instance name,Database(s),Type,Database Version,Database Profile,Size GB,Database Owner,Database/Instance Status, Database/Instance Create Date & Time,Number of clones")
 f.close()
 #
 if include_time_machine == "Y" and era_multi_cluster == "Y":
@@ -307,69 +307,94 @@ if userdbinstance.status_code == 200:
         # Get Instance Name
         db_inst_name_get=db_inst["name"]
         #
+        # DB Instance Status
+        db_inst_status_get = db_inst["status"]
         #
-        # Get Database(s)
-        for ref_id in db_inst['properties']:
-            if ref_id["name"] == "database_list":
-                # extract the list of database names
-                db_names_list = list()
-                db_names_str = ref_id["value"]
-                db_name_temp_list = db_names_str.split("{'name': '")
-                db_name_temp_list.pop(0)
-                for db_name_temp_str in db_name_temp_list:
-                    db_names_list.append(db_name_temp_str.split("',")[0])
-                databases_get_list = (LTS(db_names_list))
-                databases_get = (LTS(db_names_list))
-                break
-            else:
-                for ref_id in db_inst['properties']:
-                    if ref_id["name"] == "db_name":
-                        databases_get = ref_id["value"]
-        #
+        # Get Databases (s)
+        databases_get = ""
+        if db_inst["status"] == "PROVISIONING":
+            databases_get = "Provisioning in progress.."
+        else:
+            for ref_id in db_inst['properties']:
+                if db_inst['linkedDatabases']:
+                    db_names_list = list()
+                    for dbnum in db_inst['linkedDatabases']:
+                        dbnumname = dbnum['name']
+                        db_names_list.append(dbnumname)
+                        databases_get_list = (LTS(db_names_list))
+                        databases_get = (LTS(db_names_list))
+                elif ref_id["name"] == "database_list":
+                    # extract the list of database names
+                    db_names_list = list()
+                    db_names_str = ref_id["value"]
+                    db_name_temp_list = db_names_str.split("{'name': '")
+                    db_name_temp_list.pop(0)
+                    for db_name_temp_str in db_name_temp_list:
+                        db_names_list.append(db_name_temp_str.split("',")[0])
+                    databases_get_list = (LTS(db_names_list))
+                    databases_get = (LTS(db_names_list))
+                else:
+                    for ref_id in db_inst['properties']:
+                        if ref_id["name"] == "db_name":
+                            databases_get = ref_id["value"]
         #
         # Get DB Engine definition
-        db_engine = db_inst["type"]
-        db_engine_split = db_engine.split("_")
-        db_engine_get = db_engine_split[0]
-        #
+        if db_inst["status"] == "PROVISIONING":
+            db_engine_get = "Provisioning in progress.."
+        else:
+            db_engine = db_inst["type"]
+            db_engine_split = db_engine.split("_")
+            db_engine_get = db_engine_split[0]
         #
         # Get Database Version
-        for ref_id in db_inst['properties']:
-            if ref_id["name"] == "version":
-                db_version_get = ref_id["value"]
-        #
+        if db_inst["status"] == "PROVISIONING":
+            db_version_get = "Provisioning in progress.."
+        else:
+            for ref_id in db_inst['properties']:
+                if ref_id["name"] == "version":
+                    db_version_get = ref_id["value"]
         #
         # Get DB Profile
-        for ref_id in db_inst['properties']:
-            if ref_id["name"] == "db_parameter_profile_id":
-                db_profile_id_get = ref_id["value"]
-        for db_profile in response_db_profiledb_list:
-            if db_profile["db_profile_id"] == db_profile_id_get:
-                db_db_profile_name_get = db_profile["db_profile_name"]
-                #print(db_db_profile_name_get)
-        #
+        if db_inst["status"] == "PROVISIONING":
+            db_db_profile_name_get = "Provisioning in progress.."
+        else:
+            for ref_id in db_inst['properties']:
+                if ref_id["name"] == "db_parameter_profile_id":
+                    db_profile_id_get = ref_id["value"]
+            for db_profile in response_db_profiledb_list:
+                if db_profile["db_profile_id"] == db_profile_id_get:
+                    db_db_profile_name_get = db_profile["db_profile_name"]
         #
         # Get Database Owner
-        for user in response_user_list:
-            if user["user_id"] == db_inst['ownerId']:
-                db_owner_get = user["user_name"]
-        #
+        db_owner_get = ""
+        if db_inst["status"] == "PROVISIONING":
+            db_owner_get = "Provisioning in progress.."
+        else:
+            for user in response_user_list:
+                if user["user_id"] == db_inst['ownerId']:
+                    db_owner_get = user["user_name"]
         #
         # Get Instance Create Date
         db_instance_create_date_get = db_inst["dateCreated"]
         #
-        #
         # Get Size GB
-        for ref_id in db_inst['properties']:
-            if ref_id["name"] == "SIZE":
-                db_size_name_get_full = ref_id["value"]
-                db_size_name_get = db_size_name_get_full.split(".")[0]
-        #
+        db_size_name_get = ""
+        if db_inst["status"] == "PROVISIONING":
+            db_size_name_get = "Provisioning in progress.."
+        else:
+            for ref_id in db_inst['properties']:
+                if ref_id["name"] == "SIZE":
+                    db_size_name_get_full = ref_id["value"]
+                    db_size_name_get = db_size_name_get_full.split(".")[0]
         #
         # Get Clone Count
-        for ref_id in db_inst["timeMachine"]["properties"]:
-            if ref_id["name"] == "CLONE_COUNT":
-                db_inst_clone_count_get = ref_id["value"]
+        db_inst_clone_count_get = ""
+        if db_inst["status"] == "PROVISIONING":
+            db_inst_clone_count_get = "Provisioning in progress.."
+        else:
+            for ref_id in db_inst["timeMachine"]["properties"]:
+                if ref_id["name"] == "CLONE_COUNT":
+                    db_inst_clone_count_get = ref_id["value"]
         #
         #
         #####################################################################################
@@ -389,33 +414,36 @@ if userdbinstance.status_code == 200:
                     tm_size_float = tm["metric"]["aggregateStorage"]["size"]
                     tm_size_get = str(round(tm_size_float/1024, 2))
             #
-            #
             # Get Time Machine SLA name(s)
-            if era_multi_cluster == "Y":
-                for tm in era_returned_tm:
-                    if tm["id"] == db_inst["timeMachine"]["id"]:
-                        tm_name_list = list()
-                        for tms in tm["associatedClusters"]:
-                            tm_slaid = tms['slaId']
-                            tm_ntnxcluster_id = tms['nxClusterId']
-                            for sla in response_sla_list:
-                                if sla["sla_id"] == tm_slaid:
-                                    tm_sla_name = sla["sla_name"]
-                                    tm_name_list.append(tm_sla_name)
-                                    tm_name_hyphen = "-/-"
-                                    tm_name_list.append(tm_name_hyphen)
-                            for ntnxcluster in response_ntnxcluster_list:
-                                if ntnxcluster['ntnxcluster_id'] == tm_ntnxcluster_id:
-                                    tm_ntnxcluster_name = ntnxcluster["ntnxcluster_name"]
-                                    tm_name_list.append(tm_ntnxcluster_name)
-                                    tm_name_space = " "
-                                    tm_name_list.append(tm_name_space)
-                        tm_sla_get = (LTSNoSpace(tm_name_list))
+            tm_sla_get = ""
+            if db_inst["status"] == "PROVISIONING":
+                tm_sla_get = "Provisioning in progress.."
             else:
-                tm_sla = db_inst["timeMachine"]["slaId"]
-                for sla in response_sla_list:
-                    if sla["sla_id"] == tm_sla:
-                        tm_sla_get = sla["sla_name"]
+                if era_multi_cluster == "Y":
+                    for tm in era_returned_tm:
+                        if tm["id"] == db_inst["timeMachine"]["id"]:
+                            tm_name_list = list()
+                            for tms in tm["associatedClusters"]:
+                                tm_slaid = tms['slaId']
+                                tm_ntnxcluster_id = tms['nxClusterId']
+                                for sla in response_sla_list:
+                                    if sla["sla_id"] == tm_slaid:
+                                        tm_sla_name = sla["sla_name"]
+                                        tm_name_list.append(tm_sla_name)
+                                        tm_name_hyphen = "-/-"
+                                        tm_name_list.append(tm_name_hyphen)
+                                for ntnxcluster in response_ntnxcluster_list:
+                                    if ntnxcluster['ntnxcluster_id'] == tm_ntnxcluster_id:
+                                        tm_ntnxcluster_name = ntnxcluster["ntnxcluster_name"]
+                                        tm_name_list.append(tm_ntnxcluster_name)
+                                        tm_name_space = " "
+                                        tm_name_list.append(tm_name_space)
+                            tm_sla_get = (LTSNoSpace(tm_name_list))
+                else:
+                    tm_sla = db_inst["timeMachine"]["slaId"]
+                    for sla in response_sla_list:
+                        if sla["sla_id"] == tm_sla:
+                            tm_sla_get = sla["sla_name"]
         #
         #
         #####################################################################################
@@ -436,22 +464,18 @@ if userdbinstance.status_code == 200:
             else:
                 db_server_vm_name_get = db_inst["databaseNodes"][0]["dbserver"]["name"]
             #
-            #
             # Get DB Server VM(s) Ip Address
             if not db_inst['databaseNodes']:
                    db_server_vm_ip_get = "Provisioning in progress.."
             elif db_inst['databaseNodes'] and db_inst['clustered'] == True:
                 ip_list = list()
                 for dbs in db_inst['databaseNodes']:
-                    #if dbs['properties'][0]['value']:
                     db_server_vm_ip = dbs["dbserver"]["ipAddresses"][0]
                     ip_list.append(db_server_vm_ip)
                 db_server_vm_ip_get = (LTS(ip_list))
             else:
                 db_server_vm_ip_get = db_inst["databaseNodes"][0]["dbserver"]["ipAddresses"][0]
             #
-                #
-                #
             # Get Nutanix Cluster Placement
             if not db_inst['databaseNodes']:
                 ntnxcluster_name_get = "Provisioning in progress.."
@@ -476,6 +500,7 @@ if userdbinstance.status_code == 200:
                     for ntnxcluster in response_ntnxcluster_list:
                         if ntnxcluster["ntnxcluster_id"] == ntnxcluster_id:
                             ntnxcluster_name_get = ntnxcluster["ntnxcluster_name"]
+        #
         #
         #####################################################################################
         # Profile section
@@ -509,7 +534,6 @@ if userdbinstance.status_code == 200:
                                 if software_profile["software_profile_id"] == software_profile_ref_id:
                                     software_profile_name_get = software_profile["software_profile_name"]
             #
-            #
             # Get Compute Profile
             if not db_inst['databaseNodes']:
                 compute_profile_name_get = "Provisioning in progress.."
@@ -537,7 +561,6 @@ if userdbinstance.status_code == 200:
                             for compute_profile in response_compute_profile_list:
                                 if compute_profile["compute_profile_id"] == compute_profile_ref_id:
                                     compute_profile_name_get = compute_profile["compute_profile_name"]
-            #
             #
             # Get Network Profile
             if not db_inst['databaseNodes']:
@@ -567,7 +590,6 @@ if userdbinstance.status_code == 200:
                                 if network_profile["network_profile_id"] == network_profile_ref_id:
                                     network_profile_name_get = network_profile["network_profile_name"]
         #
-        #
         #####################################################################################
         # Tags Section
         #
@@ -588,7 +610,6 @@ if userdbinstance.status_code == 200:
                     dbtag_list.append(db_tagspace)
                 db_tag_get = (LTSNoSpace(dbtag_list))
             #
-            #
             # Time Machine Tags
             tmtag_list = list()
             if not db_inst['timeMachine']['tags']:
@@ -604,7 +625,6 @@ if userdbinstance.status_code == 200:
                     tm_tagspace = " "
                     tmtag_list.append(tm_tagspace)
                 tm_tag_get = (LTSNoSpace(tmtag_list))
-            #
             #
             # DB Server VM Tags
             dbsvmtag_list = list()
@@ -625,7 +645,7 @@ if userdbinstance.status_code == 200:
         #
 #####################################################################################
         # Add the information to the report
-        db_dict = "\n"+db_inst_name_get+","+databases_get+","+db_engine_get+","+db_version_get+","+db_db_profile_name_get+","+db_size_name_get+","+db_owner_get+","+db_instance_create_date_get+","+db_inst_clone_count_get
+        db_dict = "\n"+db_inst_name_get+","+databases_get+","+db_engine_get+","+db_version_get+","+db_db_profile_name_get+","+db_size_name_get+","+db_owner_get+","+db_inst_status_get+","+db_instance_create_date_get+","+db_inst_clone_count_get
         response_db_list.append(db_dict)
         f = open(era_report_file, "a")
         f.write(str(db_dict))
